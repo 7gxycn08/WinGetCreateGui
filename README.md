@@ -1,7 +1,7 @@
 # WinGetCreateGui
 Unofficial Gui for WinGetCreate.
 
-Easily generate WinGet YAML manifests for your projects.
+Easily generate and validate WinGet YAML manifests for your projects.
 
 
 
