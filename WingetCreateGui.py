@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import subprocess
 ################################################################################
 ## Form generated from reading UI file 'gui.ui'
 ##
@@ -8,20 +8,20 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QDialog, QGridLayout, QLabel,
-    QLineEdit, QListView, QListWidget, QListWidgetItem,
-    QPlainTextEdit, QPushButton, QSizePolicy, QWidget, QFileDialog, QMessageBox)
 import sys
 import yaml
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, Qt)
+from PySide6.QtGui import (QIcon)
+from PySide6.QtWidgets import (QApplication, QDialog, QGridLayout, QLabel,
+                               QLineEdit, QListView, QListWidget, QListWidgetItem,
+                               QPlainTextEdit, QPushButton, QSizePolicy, QFileDialog, QMessageBox)
+
 
 class Ui_Dialog(object):
+    def __init__(self):
+        self.exception_messege = None
+        self.information_messege = None
+
     def setupUi(self, Dialog):
         Dialog.setFocus()
         Dialog.setFixedSize(503, 694)
@@ -37,7 +37,6 @@ class Ui_Dialog(object):
         icon.addFile(u"Resources/app.png", QSize(), QIcon.Normal, QIcon.Off)
         Dialog.setWindowIcon(icon)
         Dialog.setSizeGripEnabled(False)
-        self.exception_messege = None
         self.gridLayout = QGridLayout(Dialog)
         self.gridLayout.setObjectName(u"gridLayout")
         self.installer_url_entry = QLineEdit(Dialog)
@@ -151,6 +150,12 @@ class Ui_Dialog(object):
 
         self.gridLayout.addWidget(self.generate_button, 22, 0, 1, 1)
 
+        self.validate_button = QPushButton(Dialog)
+        self.validate_button.setObjectName(u"validate_button")
+        self.validate_button.clicked.connect(self.validate_yaml)
+
+        self.gridLayout.addWidget(self.validate_button, 23, 0, 1, 1)
+
         self.description_entry = QPlainTextEdit(Dialog)
         self.description_entry.setObjectName(u"description_entry")
 
@@ -196,7 +201,6 @@ class Ui_Dialog(object):
 
         self.gridLayout.addWidget(self.publisher_label, 2, 0, 1, 1)
 
-
         self.retranslateUi(Dialog)
         Dialog.setTabOrder(self.package_name_entry, self.publisher_entry)
         Dialog.setTabOrder(self.publisher_entry, self.publisher_id_entry)
@@ -210,23 +214,25 @@ class Ui_Dialog(object):
         Dialog.setTabOrder(self.installer_url_entry, self.installer_sha_entry)
 
         QMetaObject.connectSlotsByName(Dialog)
+
     # setupUi
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"WinGetCreateGui v1.0",
+        Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"WinGetCreateGui v1.1",
                                                          None))
         self.installer_url_entry.setPlaceholderText(QCoreApplication.translate("Dialog",
-                                                    u"# Path to download installation file.", None))
+                                                                               u"# Path to download installation file.",
+                                                                               None))
         self.installer_url_label.setText(QCoreApplication.translate("Dialog", u"Installer Url:",
                                                                     None))
         self.installer_type_entry.setPlaceholderText(QCoreApplication.translate("Dialog",
-        u"# Enumeration of supported installer types (exe, msi, msix, inno, wix, nullsoft, appx).",
+                                                                                u"# Enumeration of supported installer types (exe, msi, msix, inno, wix, nullsoft, appx).",
                                                                                 None))
         self.installer_sha_label.setText(QCoreApplication.translate("Dialog", u"Installer Sha256:",
                                                                     None))
-#if QT_CONFIG(accessibility)
+        #if QT_CONFIG(accessibility)
         self.package_name_entry.setAccessibleDescription("")
-#endif // QT_CONFIG(accessibility)
+        #endif // QT_CONFIG(accessibility)
         self.package_name_entry.setText("")
         self.package_name_entry.setPlaceholderText(QCoreApplication.translate("Dialog",
                                                                               u"# The name of the application.",
@@ -264,9 +270,28 @@ class Ui_Dialog(object):
         self.arch_label.setText(QCoreApplication.translate("Dialog", u"Architecture:", None))
         self.license_label.setText(QCoreApplication.translate("Dialog", u"License:", None))
         self.generate_button.setText(QCoreApplication.translate("Dialog", u"Generate", None))
+        self.generate_button.setStyleSheet("""
+            QPushButton {
+                border: 1.5px solid #0078d4;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #8c8c8c;
+            }
+        """)
+        self.validate_button.setText(QCoreApplication.translate("Dialog", u"Validate", None))
+        self.validate_button.setStyleSheet("""
+                    QPushButton {
+                        border: 1.5px solid #0078d4;
+                        border-radius: 10px;
+                    }
+                    QPushButton:hover {
+                        background-color: #8c8c8c;
+                    }
+                """)
         self.description_entry.setPlainText("")
         self.description_entry.setPlaceholderText(QCoreApplication.translate("Dialog",
-                                                        u"# The description of the application.",
+                                                                             u"# The description of the application.",
                                                                              None))
         self.package_version_label.setText(QCoreApplication.translate("Dialog",
                                                                       u"Package Version:", None))
@@ -278,11 +303,12 @@ class Ui_Dialog(object):
         self.installer_type_label.setText(QCoreApplication.translate("Dialog",
                                                                      u"Installer Type:", None))
         self.installer_sha_entry.setPlaceholderText(QCoreApplication.translate("Dialog",
-                                                                u"# SHA256 calculated from installer.",
+                                                                               u"# SHA256 calculated from installer.",
                                                                                None))
         self.description_label.setText(QCoreApplication.translate("Dialog",
                                                                   u"Short Description:", None))
         self.publisher_label.setText(QCoreApplication.translate("Dialog", u"Publisher:", None))
+
     # retranslateUi
 
     def exception_messege_box(self):
@@ -291,8 +317,18 @@ class Ui_Dialog(object):
         message_box.setIcon(QMessageBox.Icon.Critical)
         message_box.setWindowTitle("Error")
         message_box.setText(f"{self.exception_messege}")
-        message_box.setStandardButtons(QMessageBox.Ok)
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
         message_box.exec()
+
+    def information_messege_box(self):
+        message_box = QMessageBox()
+        message_box.setWindowIcon(QIcon(r"Resources\app.png"))
+        message_box.setIcon(QMessageBox.Icon.Information)
+        message_box.setWindowTitle("Done")
+        message_box.setText(f"{self.information_messege}")
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        message_box.exec()
+
     def generate_yaml(self):
         project_name = self.package_name_entry.text()
         publisher_name = self.publisher_entry.text()
@@ -334,8 +370,8 @@ class Ui_Dialog(object):
         }
 
         file_dialog = QFileDialog()
-        file_dialog.setFileMode(QFileDialog.AnyFile)
-        file_dialog.setAcceptMode(QFileDialog.AcceptSave)
+        file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
         file_dialog.setNameFilter("YAML files (*.yaml)")
 
         default_name = f'{project_name}.{publisher_name}.yaml'
@@ -346,6 +382,22 @@ class Ui_Dialog(object):
             with open(selected_file, 'w') as file:
                 yaml.dump(data, file, sort_keys=False)
 
+    def validate_yaml(self):
+        file_dialog = QFileDialog()
+        file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+        file_dialog.setNameFilter("YAML files (*.yaml)")
+        selected_file, _ = file_dialog.getOpenFileName()
+        command = ["winget", "validate", f"{selected_file}"]
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+        output = process.communicate()[0]
+        decoded_output = output.decode('utf-8')
+        self.information_messege = decoded_output
+        self.information_messege_box()
+
+
+
 def main():
     app = QApplication(sys.argv)
     dialog = QDialog()
@@ -354,6 +406,6 @@ def main():
     dialog.show()
     sys.exit(app.exec())
 
+
 if __name__ == "__main__":
     main()
-
